@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>바카라 전광판</title>
+
+<!-- ===== PWA(앱처럼 설치되게 하는) 설정 ===== -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#5a1010">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background:#3d0a0a; min-height:100vh; padding:6px; display:flex; justify-content:center; }
+
+.board {
+  width:100%; max-width:1020px;
+  background:#5a1010; border:3px solid #8b2020; border-radius:8px;
+  overflow:hidden; font-family:'Malgun Gothic','Dotum',Arial,sans-serif;
+  box-shadow:0 0 30px rgba(0,0,0,0.6);
+}
+
+.sec-title {
+  background:linear-gradient(90deg,#3d0808,#5a1010,#3d0808);
+  color:#cc9922; font-size:10px; letter-spacing:4px;
+  text-align:center; padding:3px 0; border-bottom:1px solid #8b2020;
+  user-select:none;
+}
+
+table.road { border-collapse:collapse; background:#faf6ef; }
+table.road td { border:0.5px solid #ddd8cc; padding:0; text-align:center; vertical-align:middle; }
+
+/* 육매: filled circles */
+.bd { display:inline-flex; align-items:center; justify-content:center;
+      width:30px; height:30px; border-radius:50%; font-size:11px; font-weight:bold; color:#fff; }
+.bd-B { background:radial-gradient(circle at 35% 30%,#ff9999,#cc1111,#880000); border:2px solid #ff5555; }
+.bd-P { background:radial-gradient(circle at 35% 30%,#aabbff,#2255dd,#001188); border:2px solid #4488ff; }
+.bd-T { background:radial-gradient(circle at 35% 30%,#99ffbb,#00bb44,#006622); border:2px solid #44cc66; }
+
+/* 빅로드: HOLLOW circles, fill cell */
+.br {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:42px; height:42px; border-radius:50%; border:3px solid;
+  box-sizing:border-box; background:transparent; position:relative;
+}
+.br-B { border-color:#cc2222; }
+.br-P { border-color:#2244bb; }
+.tie-slash {
+  position:absolute; width:130%; height:3px; background:#00cc44;
+  left:-15%; top:50%; transform:translateY(-50%) rotate(-45deg); border-radius:2px;
+}
+.tie-num {
+  position:absolute; bottom:-6px; right:-6px;
+  background:#009933; color:#fff; font-size:8px; font-weight:bold;
+  width:13px; height:13px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; border:1px solid #00ff66;
+}
+
+/* 빅아이즈/스몰: hollow small circles */
+.be { display:inline-block; width:13px; height:13px; border-radius:50%; border:2px solid; background:transparent; }
+.be-R { border-color:#2244bb; }
+.be-B { border-color:#cc2222; }
+
+/* 스몰: solid dots */
+.sr { display:inline-block; width:10px; height:10px; border-radius:50%; }
+.sr-R { background:#cc2222; }
+.sr-B { background:#2244bb; }
+
+/* 코코로치: diagonal slash */
+.cr-wrap { display:inline-block; width:16px; height:16px; position:relative; }
+.cr-wrap::after { content:''; position:absolute; width:3px; height:20px; border-radius:2px; top:-2px; left:7px; transform:rotate(45deg); }
+.cr-R::after { background:#cc2222; }
+.cr-B::after { background:#2244bb; }
+
+/* 3매: filled circles B/P */
+.s3 { display:inline-flex; align-items:center; justify-content:center;
+      width:26px; height:26px; border-radius:50%; font-size:10px; font-weight:bold; color:#fff; }
+.s3-B { background:radial-gradient(circle at 35% 30%,#ff9999,#cc1111); border:2px solid #ff4444; }
+.s3-P { background:radial-gradient(circle at 35% 30%,#aabbff,#2255dd); border:2px solid #4488ff; }
+
+/* Layout */
+.row1 { display:flex; border-bottom:2px solid #8b2020; }
+.col-bead { flex-shrink:0; overflow-x:auto; background:#faf6ef; border-right:2px solid #8b2020; }
+.col-stats { flex:1; background:#1a0505; padding:8px 10px; display:flex; flex-direction:column; justify-content:center; }
+
+.stats-grid { display:flex; justify-content:space-around; align-items:center; margin-top:4px; }
+.stat-item { text-align:center; }
+.stat-lbl { font-size:9px; color:#886644; letter-spacing:1px; }
+.stat-val { font-size:28px; font-weight:bold; font-variant-numeric:tabular-nums; line-height:1.1; }
+.stat-pct { font-size:9px; color:#554422; }
+.cB{color:#ff4444;} .cP{color:#4488ff;} .cT{color:#44cc66;} .cX{color:#ffcc00;}
+
+.next-wrap { margin-top:10px; text-align:center; }
+.next-lbl { font-size:9px; color:#886644; letter-spacing:3px; margin-bottom:4px; }
+.next-boxes { display:flex; gap:8px; justify-content:center; }
+.next-b { width:30px; height:30px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:bold; }
+.nb-B { border:2.5px solid #cc2222; color:#cc2222; }
+.nb-P { border:2.5px solid #2244bb; color:#2244bb; }
+
+.row2 { border-bottom:2px solid #8b2020; overflow-x:auto; background:#faf6ef; }
+.row3 { display:flex; border-bottom:1px solid #8b2020; }
+.col-be { flex:1; overflow-x:auto; border-right:1px solid #8b2020; background:#faf6ef; }
+.col-sr { flex:1; overflow-x:auto; background:#faf6ef; }
+.row4 { display:flex; border-bottom:2px solid #8b2020; }
+.col-cr { flex:1; overflow-x:auto; border-right:1px solid #8b2020; background:#faf6ef; }
+.col-s3 { flex:1; overflow-x:auto; background:#faf6ef; }
+
+.status-bar { background:#100404; padding:5px 12px; font-size:11px; color:#886644; text-align:center; border-bottom:1px solid #8b2020; min-height:24px; letter-spacing:1px; }
+
+.controls { padding:10px 8px; background:#1a0505; display:flex; gap:6px; justify-content:center; flex-wrap:wrap; }
+.btn { padding:11px 18px; border-radius:5px; font-size:14px; font-weight:bold; cursor:pointer; font-family:'Malgun Gothic',Arial; letter-spacing:1px; border:2px solid transparent; transition:filter .12s,transform .08s; min-width:82px; }
+.btn:hover { filter:brightness(1.3); }
+.btn:active { transform:scale(0.94); filter:brightness(0.85); }
+.btn-B { background:linear-gradient(175deg,#cc2020,#7a0000); border-color:#ff5555; color:#fff; box-shadow:0 3px 10px rgba(180,0,0,0.4); }
+.btn-P { background:linear-gradient(175deg,#1144bb,#001188); border-color:#4488ff; color:#fff; box-shadow:0 3px 10px rgba(0,40,180,0.4); }
+.btn-T { background:linear-gradient(175deg,#007733,#004422); border-color:#44cc66; color:#88ffaa; }
+.btn-undo { background:linear-gradient(175deg,#554400,#332800); border-color:#aa8800; color:#ffcc44; }
+.btn-reset { background:linear-gradient(175deg,#1a1a2a,#0c0c18); border-color:#4444aa; color:#8888cc; }
+
+@keyframes popIn { 0%{transform:scale(0.3);opacity:0;} 65%{transform:scale(1.2);} 100%{transform:scale(1);opacity:1;} }
+.new-pop { animation:popIn 0.28s ease-out; }
+
+/* ===================== 로그인 화면 스타일 ===================== */
+#content { display: none; }
+
+#loginScreen {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #1e1e2e;
+  color: white;
+  font-family: sans-serif;
+}
+#loginScreen input {
+  padding: 10px;
+  font-size: 16px;
+  margin: 10px 0;
+  border-radius: 6px;
+  border: none;
+  width: 200px;
+  text-align: center;
+}
+#loginScreen button {
+  padding: 10px 24px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: none;
+  background: #cc9922;
+  color: #2a0a0a;
+  font-weight: bold;
+  cursor: pointer;
+}
+#errorMsg { color: #ff6b6b; min-height: 20px; margin-top: 8px; }
+
+/* 코드/텍스트 드래그 복사 방해 (완벽 차단은 아님) */
+body { -webkit-user-select: none; -moz-user-select: none; user-select: none; }
+</style>
+</head>
+<body>
+
+<!-- ===================== 로그인 화면 ===================== -->
+<div id="loginScreen">
+  <h2>🔒 비밀번호를 입력하세요</h2>
+  <input type="password" id="pwInput" placeholder="password" autofocus>
+  <button onclick="checkPassword()">입장하기</button>
+  <p id="errorMsg"></p>
+</div>
+
+<!-- ===================== 실제 전광판 (비번 통과해야 보임) ===================== -->
+<div id="content">
+<div class="board">
+
+  <div class="row1">
+    <div class="col-bead">
+      <div class="sec-title">◆ 육 매 ( B E A D  R O A D ) ◆</div>
+      <div id="beadRoad"></div>
+    </div>
+    <div class="col-stats">
+      <div class="sec-title">손사장 전용 ◆ 총 국 결 과 ◆</div>
+      <div class="stats-grid">
+        <div class="stat-item"><div class="stat-lbl">총 게 임</div><div class="stat-val cX" id="sTotal">0</div><div class="stat-pct">TOTAL</div></div>
+        <div class="stat-item"><div class="stat-lbl">뱅 커</div><div class="stat-val cB" id="sB">0</div><div class="stat-pct" id="sBp">—</div></div>
+        <div class="stat-item"><div class="stat-lbl">플레이어</div><div class="stat-val cP" id="sP">0</div><div class="stat-pct" id="sPp">—</div></div>
+        <div class="stat-item"><div class="stat-lbl">타 이</div><div class="stat-val cT" id="sT">0</div><div class="stat-pct" id="sTp">—</div></div>
+      </div>
+      <div class="next-wrap">
+        <div class="next-lbl">N E X T</div>
+        <div class="next-boxes"><div class="next-b nb-B">B</div><div class="next-b nb-P">P</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row2">
+    <div class="sec-title">◆ 빅 로 드 ( B I G  R O A D ) ◆</div>
+    <div id="bigRoad"></div>
+  </div>
+
+  <div class="row3">
+    <div class="col-be"><div class="sec-title">◆ 빅 아 이 즈 로 드 ◆</div><div id="bigEye"></div></div>
+    <div class="col-sr"><div class="sec-title">◆ 스 몰 로 드 ◆</div><div id="smallRoad"></div></div>
+  </div>
+
+  <div class="row4">
+    <div class="col-cr"><div class="sec-title">◆ 코 코 로 치 로 드 ◆</div><div id="cockroach"></div></div>
+    <div class="col-s3"><div class="sec-title">◆ 3 매 ◆</div><div id="samMae"></div></div>
+  </div>
+
+  <div class="status-bar" id="statusBar">▶ 버튼을 눌러 결과를 입력하세요</div>
+
+  <div class="controls">
+    <button class="btn btn-B" onclick="addResult('B')">● 뱅 커</button>
+    <button class="btn btn-P" onclick="addResult('P')">● 플레이어</button>
+    <button class="btn btn-T" onclick="addResult('T')">● 타 이</button>
+    <button class="btn btn-undo" onclick="undoLast()">↩ 직전취소</button>
+    <button class="btn btn-reset" onclick="resetAll()">⟳ 초기화</button>
+  </div>
+</div>
+</div><!-- #content 닫기 -->
+
+<script>
+'use strict';
+
+/* ── Constants ──────────────────────────────── */
+const BIG_ROWS=6, BIG_MINCOL=24;
+const OK_ROWS=6,  OK_MINCOL=10;
+const DER_ROWS=6, DER_MINCOL=16;
+const SAM_ROWS=3, SAM_MINCOL=16;
+
+let results = [];
+
+/* ═══════════════════════════════════════════════
+   빅 로드 (Big Road) — 스테어케이스 드래곤 포함
+   ▸ 6행 기준
+   ▸ 같은 색 7개+: 6행 끝에서 오른쪽(드래곤)
+   ▸ 다음 색 column: 드래곤 연속되면 maxRow 1씩 감소
+     (예: 1열=6행→드래곤, 2열=5행→드래곤, 3열=4행→드래곤)
+   ▸ 정상 종료(드래곤 없음) 후: maxRow 리셋
+   ═══════════════════════════════════════════════ */
+function computeBigRoad(res) {
+  /*
+   * 빅로드 — 드래곤 후 다음 색은 "드래곤 첫 번째 열"에서 row=0 시작
+   * 예) B×8: col0(행0~5) + 드래곤 col1,col2(행5)
+   *     다음 P: col1(행0~4) 시작 → 빈 열 없음
+   */
+  const entries = [];
+  let lastNT = null;
+  let col = -1, row = 0;
+  let maxRow = BIG_ROWS - 1;
+  let inDragon = false;
+  let firstDragonCol = -1;   // 드래곤이 시작된 첫 번째 열
+
+  for (const r of res) {
+    if (r === 'T') {
+      if (entries.length) entries[entries.length-1].ties++;
+      continue;
+    }
+
+    if (col === -1) {
+      col = 0; row = 0; inDragon = false; firstDragonCol = -1;
+    } else if (r === lastNT) {
+      if (row < maxRow) {
+        row++;
+      } else {
+        // 드래곤: 오른쪽으로 이동
+        col++;
+        if (!inDragon) { firstDragonCol = col; inDragon = true; }
+      }
+    } else {
+      // 색 변경
+      if (inDragon) {
+        // ★ 다음 색은 드래곤 첫 번째 열(firstDragonCol)에서 row=0 시작
+        col    = firstDragonCol;
+        row    = 0;
+        maxRow = Math.max(0, maxRow - 1);
+      } else {
+        col++; row = 0;
+        maxRow = BIG_ROWS - 1;
+      }
+      inDragon = false; firstDragonCol = -1;
+    }
+
+    entries.push({ col, row, result: r, ties: 0 });
+    lastNT = r;
+  }
+  return entries;
+}
+
+/* ═══════════════════════════════════════════════
+   파생로드 엔진 — Microgaming 공식 로드맵 매뉴얼 기준
+   (출처: Microgaming Live Games 기술 문서, livedealer.org 공개)
+   ▸ Big Eye Road  (빅아이즈로드): k = 1
+   ▸ Small Road    (스몰로드):    k = 2
+   ▸ Cockroach Rd  (코코로치로드): k = 3
+
+   빅로드의 마지막 아이콘이 "컬럼 n, 행 m" (1-indexed)에 있다고 할 때:
+
+   [m >= 2 : 같은 컬럼에서 아래로 이어지는 경우]
+     비교 대상 = 컬럼 (n - k). 그 컬럼에 아이콘이 p개 있다면:
+       m <= p     → RED
+       m == p + 1 → BLUE
+       m  > p + 1 → RED   ★ 기존 코드가 빠뜨렸던 케이스.
+                            "셀이 존재하는가"만 boolean으로 체크하면
+                            이 구간(많이 짧은 참조컬럼)이 전부 BLUE로
+                            잘못 계산됨 — 이게 스몰/코코로치/빅아이즈가
+                            실제 카지노 엔진과 어긋난 진짜 원인이었음.
+
+   [m == 1 : 새 컬럼이 시작되는 경우]
+     결과색을 반전했다고 가정하고(뱅커↔플레이어), m'=이전 컬럼 길이+1,
+     n'=n-1 로 두어 위 m>=2 규칙을 그대로 적용한 뒤, 답을 다시 반전.
+     (정리하면 결국: 직전 컬럼 길이 == (k만큼 더 전) 컬럼 길이 → RED,
+      다르면 BLUE — 이 부분은 기존 구현이 이미 정확했음)
+   ═══════════════════════════════════════════════ */
+function computeDerived(bigRoad, k) {
+  // 빅로드를 컬럼별로 그룹화 (1-indexed 컬럼/행 번호 사용)
+  const colLen = {};                       // colLen[n] = 컬럼 n의 아이콘 개수
+  for (const e of bigRoad) {
+    const n = e.col + 1;
+    colLen[n] = (colLen[n] || 0) + 1;
+  }
+
+  const out = [];
+
+  for (const e of bigRoad) {
+    const n = e.col + 1;
+    const m = e.row + 1;
+    let isRed;
+
+    if (m >= 2) {
+      const refCol = n - k;
+      if (refCol < 1) continue;
+      const p = colLen[refCol] || 0;
+      if (m <= p)        isRed = true;
+      else if (m === p+1) isRed = false;
+      else                 isRed = true;     // m > p+1
+    } else {
+      // m === 1 (새 컬럼)
+      const nPrime = n - 1;
+      const refCol = nPrime - k;
+      if (refCol < 1) continue;
+      const mPrime = (colLen[nPrime] || 0) + 1;
+      const p = colLen[refCol] || 0;
+      let red;
+      if (mPrime <= p)        red = true;
+      else if (mPrime === p+1) red = false;
+      else                      red = true;
+      isRed = !red;   // 반전된 답을 다시 반전
+    }
+
+    out.push(isRed ? 'R' : 'B');
+  }
+  return out;
+}
+
+/* ═══════════════════════════════════════════════
+   파생로드 시각 배치 — 스테어케이스 드래곤 동일 적용
+   (빅아이즈, 스몰, 코코로치 모두 동일 방식)
+   ═══════════════════════════════════════════════ */
+function buildDerivedDisplay(arr, rows) {
+  // 파생로드도 동일: 드래곤 후 다음 색은 드래곤 첫 열에서 시작
+  const entries = [];
+  let lastColor = null;
+  let col = -1, row = 0;
+  let maxRow = rows - 1;
+  let inDragon = false;
+  let firstDragonCol = -1;
+
+  for (const color of arr) {
+    if (col === -1) {
+      col = 0; row = 0; inDragon = false; firstDragonCol = -1;
+    } else if (color === lastColor) {
+      if (row < maxRow) {
+        row++;
+      } else {
+        col++;
+        if (!inDragon) { firstDragonCol = col; inDragon = true; }
+      }
+    } else {
+      if (inDragon) {
+        col    = firstDragonCol;
+        row    = 0;
+        maxRow = Math.max(0, maxRow - 1);
+      } else {
+        col++; row = 0;
+        maxRow = rows - 1;
+      }
+      inDragon = false; firstDragonCol = -1;
+    }
+    entries.push({ col, row, color });
+    lastColor = color;
+  }
+  return entries;
+}
+
+/* 3매: 타이 제외 B/P 순서대로 3행씩 */
+function computeSamMae(res) {
+  const nt = res.filter(r => r !== 'T');
+  return nt.map((r, i) => ({ col: Math.floor(i/SAM_ROWS), row: i%SAM_ROWS, result: r }));
+}
+
+/* ── Grid helpers ───────────────────────────── */
+function entriesToGrid(entries, rows, cols) {
+  const g = Array.from({length:rows}, () => Array(cols).fill(null));
+  for (const e of entries)
+    if (e.row < rows && e.col < cols) g[e.row][e.col] = e;
+  return g;
+}
+function flatToGrid(arr, rows, cols) {
+  const g = Array.from({length:rows}, () => Array(cols).fill(null));
+  for (let i=0; i<arr.length; i++) {
+    const c=Math.floor(i/rows), r=i%rows;
+    if (c<cols) g[r][c]=arr[i];
+  }
+  return g;
+}
+
+/* ── Renderers ──────────────────────────────── */
+
+function renderBead(res) {
+  const cols=Math.max(OK_MINCOL, Math.ceil(res.length/OK_ROWS)+2);
+  const g=flatToGrid(res,OK_ROWS,cols);
+  let h=`<table class="road">`;
+  for (let r=0;r<OK_ROWS;r++) {
+    h+=`<tr>`;
+    for (let c=0;c<cols;c++) {
+      h+=`<td style="width:34px;height:34px;">`;
+      const v=g[r][c]; if(v) h+=`<span class="bd bd-${v}">${v}</span>`;
+      h+=`</td>`;
+    }
+    h+=`</tr>`;
+  }
+  h+=`</table>`;
+  document.getElementById('beadRoad').innerHTML=h;
+}
+
+function renderBigRoad(entries) {
+  const maxC=entries.reduce((m,e)=>Math.max(m,e.col),-1);
+  const cols=Math.max(BIG_MINCOL, maxC+4);
+  const g=entriesToGrid(entries,BIG_ROWS,cols);
+  const last=entries[entries.length-1];
+  const CW=42,CH=42;
+  let h=`<table class="road">`;
+  for (let r=0;r<BIG_ROWS;r++) {
+    h+=`<tr>`;
+    for (let c=0;c<cols;c++) {
+      h+=`<td style="width:${CW}px;height:${CH}px;">`;
+      const e=g[r][c];
+      if (e) {
+        const pop=(e===last)?' new-pop':'';
+        let inner='';
+        if (e.ties>0) {
+          inner+=`<span class="tie-slash"></span>`;
+          if (e.ties>=2) inner+=`<span class="tie-num">${e.ties}</span>`;
+        }
+        h+=`<span class="br br-${e.result}${pop}">${inner}</span>`;
+      }
+      h+=`</td>`;
+    }
+    h+=`</tr>`;
+  }
+  h+=`</table>`;
+  document.getElementById('bigRoad').innerHTML=h;
+}
+
+/* 빅아이즈/스몰/코코로치 공통 렌더 (표시 요소만 다름) */
+function renderDerivedGrid(id, displayEntries, rows, minCols, cellSize, cellFn) {
+  const maxC=displayEntries.reduce((m,e)=>Math.max(m,e.col),-1);
+  const cols=Math.max(minCols, maxC+4);
+  const g=Array.from({length:rows},()=>Array(cols).fill(null));
+  for (const e of displayEntries) if(e.col<cols) g[e.row][e.col]=e;
+  let h=`<table class="road">`;
+  for (let r=0;r<rows;r++) {
+    h+=`<tr>`;
+    for (let c=0;c<cols;c++) {
+      h+=`<td style="width:${cellSize}px;height:${cellSize}px;">`;
+      const e=g[r][c]; if(e) h+=cellFn(e.color);
+      h+=`</td>`;
+    }
+    h+=`</tr>`;
+  }
+  h+=`</table>`;
+  document.getElementById(id).innerHTML=h;
+}
+
+function renderSamMae(entries) {
+  const maxC=entries.length>0?entries[entries.length-1].col:-1;
+  const cols=Math.max(SAM_MINCOL,maxC+4);
+  const last=entries[entries.length-1];
+  const g=Array.from({length:SAM_ROWS},()=>Array(cols).fill(null));
+  for (const e of entries) if(e.col<cols) g[e.row][e.col]=e;
+  let h=`<table class="road">`;
+  for (let r=0;r<SAM_ROWS;r++) {
+    h+=`<tr>`;
+    for (let c=0;c<cols;c++) {
+      h+=`<td style="width:28px;height:28px;">`;
+      const e=g[r][c];
+      if(e) h+=`<span class="s3 s3-${e.result}${e===last?' new-pop':''}">${e.result}</span>`;
+      h+=`</td>`;
+    }
+    h+=`</tr>`;
+  }
+  h+=`</table>`;
+  document.getElementById('samMae').innerHTML=h;
+}
+
+function renderStats(res) {
+  const s={B:0,P:0,T:0};
+  for(const r of res) s[r]++;
+  const total=res.length;
+  document.getElementById('sTotal').textContent=total;
+  document.getElementById('sB').textContent=s.B;
+  document.getElementById('sP').textContent=s.P;
+  document.getElementById('sT').textContent=s.T;
+  if(total>0){
+    document.getElementById('sBp').textContent=(s.B/total*100).toFixed(1)+'%';
+    document.getElementById('sPp').textContent=(s.P/total*100).toFixed(1)+'%';
+    document.getElementById('sTp').textContent=(s.T/total*100).toFixed(1)+'%';
+  } else { ['sBp','sPp','sTp'].forEach(id=>document.getElementById(id).textContent='—'); }
+}
+
+function renderStatus(res) {
+  const bar=document.getElementById('statusBar');
+  if(!res.length){bar.innerHTML='▶ 버튼을 눌러 결과를 입력하세요';return;}
+  const s={B:0,P:0,T:0}; for(const r of res) s[r]++;
+  const last=res[res.length-1];
+  const nm={B:'뱅 커',P:'플레이어',T:'타 이'};
+  const cc={B:'#ff4444',P:'#4488ff',T:'#44cc66'};
+  bar.innerHTML=`제 <b style="color:#ffcc00">${res.length}</b>국 &nbsp;|&nbsp; 결과: <b style="color:${cc[last]}">${nm[last]}</b> &nbsp;|&nbsp; B <b class="cB">${s.B}</b> &nbsp; P <b class="cP">${s.P}</b> &nbsp; T <b class="cT">${s.T}</b>`;
+}
+
+/* ── Main update ────────────────────────────── */
+function update() {
+  const bigRoad = computeBigRoad(results);
+  // 빅아이즈로드만 색 반전 (실측 결과 정반대로 나와서 호출부에서만 뒤집음 — 다른 로드는 손대지 않음)
+  const bigEyeArr  = computeDerived(bigRoad, 1).map(v => v === 'R' ? 'B' : 'R');
+  const smallArr   = computeDerived(bigRoad, 2);
+  const cockArr    = computeDerived(bigRoad, 3);
+  const samMae  = computeSamMae(results);
+
+  const bigEyeDisp = buildDerivedDisplay(bigEyeArr, DER_ROWS);
+  const smallDisp  = buildDerivedDisplay(smallArr,  DER_ROWS);
+  const cockDisp   = buildDerivedDisplay(cockArr,   DER_ROWS);
+
+  renderBead(results);
+  renderBigRoad(bigRoad);
+
+  // 빅아이즈로드: hollow circles
+  renderDerivedGrid('bigEye', bigEyeDisp, DER_ROWS, DER_MINCOL, 18,
+    c=>`<span class="be be-${c}"></span>`);
+
+  // 스몰로드: solid dots
+  renderDerivedGrid('smallRoad', smallDisp, DER_ROWS, DER_MINCOL, 14,
+    c=>`<span class="sr sr-${c}"></span>`);
+
+  // 코코로치로드: diagonal slashes
+  renderDerivedGrid('cockroach', cockDisp, DER_ROWS, DER_MINCOL, 20,
+    c=>`<span class="cr-wrap cr-${c}"></span>`);
+
+  renderSamMae(samMae);
+  renderStats(results);
+  renderStatus(results);
+}
+
+/* ── Controls ───────────────────────────────── */
+function addResult(r) { results.push(r); update(); }
+function undoLast()   { if(results.length){results.pop();update();} }
+function resetAll()   { if(results.length&&confirm('모든 기록을 초기화하시겠습니까?')){results=[];update();} }
+
+update();
+</script>
+<script>
+/* ===================== 사용 만료일 설정 =====================
+   아래 날짜가 지나면 비밀번호를 맞게 입력해도 더 이상 들어갈 수 없습니다.
+   날짜만 원하는 값으로 바꾸세요. 형식: "YYYY-MM-DD"
+   예: 2026년 12월 31일까지 쓰게 하려면 → "2026-12-31"
+*/
+const EXPIRY_DATE = "2026-12-31";
+
+function isExpired() {
+  const today = new Date();
+  const expiry = new Date(EXPIRY_DATE + "T23:59:59");
+  return today > expiry;
+}
+
+function showExpiredScreen() {
+  document.getElementById("loginScreen").innerHTML =
+    '<h2>⛔ 사용 기간이 종료되었습니다</h2><p style="margin-top:10px;opacity:0.8;">관리자에게 문의해주세요.</p>';
+}
+
+/* ===================== 로그인 검증 =====================
+   비밀번호는 아래 한 줄에 있습니다. 바로 이 줄의
+   "1234" 부분만 원하는 비밀번호로 바꾸면 끝입니다.
+   (예: const PASSWORD = "내비번"; )
+*/
+const PASSWORD = "1234";
+
+function checkPassword() {
+  if (isExpired()) { showExpiredScreen(); return; }
+  const pw = document.getElementById("pwInput").value;
+  if (pw === PASSWORD) {
+    document.getElementById("loginScreen").style.display = "none";
+    document.getElementById("content").style.display = "block";
+    sessionStorage.setItem("loggedIn", "1"); // 같은 탭에서는 새로고침해도 로그인 유지
+  } else {
+    document.getElementById("errorMsg").textContent = "비밀번호가 틀렸습니다.";
+    document.getElementById("pwInput").value = "";
+  }
+}
+
+document.getElementById("pwInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") checkPassword();
+});
+
+// 페이지를 열 때마다 가장 먼저 만료일을 확인합니다.
+window.addEventListener("DOMContentLoaded", () => {
+  if (isExpired()) {
+    showExpiredScreen();
+    document.getElementById("content").style.display = "none";
+    return;
+  }
+  // 만료 전이고, 이미 같은 탭에서 로그인했다면 새로고침해도 다시 안 물어봄
+  if (sessionStorage.getItem("loggedIn") === "1") {
+    document.getElementById("loginScreen").style.display = "none";
+    document.getElementById("content").style.display = "block";
+  }
+});
+
+/* ===================== 코드 복사 방해 장치 (완벽 차단은 아님) ===================== */
+document.addEventListener("contextmenu", e => e.preventDefault());
+document.addEventListener("selectstart", e => e.preventDefault());
+document.addEventListener("keydown", e => {
+  const blocked =
+    e.key === "F12" ||
+    (e.ctrlKey && e.key.toUpperCase() === "U") ||
+    (e.ctrlKey && e.key.toUpperCase() === "S") ||
+    (e.ctrlKey && e.shiftKey && ["I","J","C"].includes(e.key.toUpperCase()));
+  if (blocked) e.preventDefault();
+});
+
+/* ===================== PWA 서비스워커 등록 (오프라인 + 설치 지원) ===================== */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
