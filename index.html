@@ -578,7 +578,7 @@ update();
    날짜만 원하는 값으로 바꾸세요. 형식: "YYYY-MM-DD"
    예: 2026년 12월 31일까지 쓰게 하려면 → "2026-12-31"
 */
-const EXPIRY_DATE = "2026-12-31";
+const EXPIRY_DATE = "2026-06-30";
 
 function isExpired() {
   const today = new Date();
@@ -596,7 +596,7 @@ function showExpiredScreen() {
    "1234" 부분만 원하는 비밀번호로 바꾸면 끝입니다.
    (예: const PASSWORD = "내비번"; )
 */
-const PASSWORD = "1234";
+const PASSWORD = "thswldn";
 
 function checkPassword() {
   if (isExpired()) { showExpiredScreen(); return; }
