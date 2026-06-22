@@ -12,21 +12,65 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+:root {
+  --felt:#150404;
+  --velvet:#4a0e10;
+  --velvet-deep:#290607;
+  --gold:#d8b04a;
+  --gold-bright:#f6e2a0;
+  --ruby:#e2233f;
+  --sapphire:#2454e6;
+  --ivory:#f1e3c6;
+}
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background:#3d0a0a; min-height:100vh; padding:6px; display:flex; justify-content:center; }
+body {
+  background:
+    radial-gradient(ellipse 900px 400px at 50% -8%, rgba(216,176,74,0.10), transparent 60%),
+    radial-gradient(ellipse 900px 500px at 50% 115%, rgba(0,0,0,0.55), transparent 60%),
+    var(--felt);
+  min-height:100vh; padding:4px; display:flex; justify-content:center;
+}
 
 .board {
   width:100%; max-width:1020px;
-  background:#5a1010; border:3px solid #8b2020; border-radius:8px;
+  background:linear-gradient(180deg,var(--velvet),var(--velvet-deep));
+  border-radius:8px;
   overflow:hidden; font-family:'Malgun Gothic','Dotum',Arial,sans-serif;
-  box-shadow:0 0 30px rgba(0,0,0,0.6);
+  position:relative;
+  border:1px solid rgba(216,176,74,0.4);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.65),
+    0 0 0 4px var(--velvet-deep),
+    0 0 0 5px rgba(216,176,74,0.55),
+    0 16px 40px rgba(0,0,0,0.65),
+    inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.marquee-lights {
+  height:4px;
+  background-image: repeating-radial-gradient(circle at 0 50%, var(--gold-bright) 0 1.4px, transparent 2px 14px);
+  background-size: 28px 4px;
+  filter: drop-shadow(0 0 3px rgba(246,226,160,0.65));
+  animation: marquee-chase 1.3s linear infinite;
+}
+.marquee-lights.bottom { transform:scaleX(-1); }
+@keyframes marquee-chase { from{background-position:0 0;} to{background-position:28px 0;} }
+@media (prefers-reduced-motion: reduce) {
+  .marquee-lights { animation:none; }
+  .new-pop { animation:none !important; }
 }
 
 .sec-title {
-  background:linear-gradient(90deg,#3d0808,#5a1010,#3d0808);
-  color:#cc9922; font-size:10px; letter-spacing:4px;
-  text-align:center; padding:3px 0; border-bottom:1px solid #8b2020;
+  font-family:'Nanum Myeongjo',serif; font-weight:800;
+  background:linear-gradient(180deg, rgba(0,0,0,0.22), rgba(0,0,0,0.04));
+  color:var(--gold-bright); font-size:10px; letter-spacing:4px;
+  text-align:center; padding:2px 0;
+  border-bottom:1px solid rgba(216,176,74,0.25);
+  text-shadow:0 0 10px rgba(246,226,160,0.35), 0 1px 0 rgba(0,0,0,0.6);
   user-select:none;
 }
 
@@ -35,93 +79,131 @@ table.road td { border:0.5px solid #ddd8cc; padding:0; text-align:center; vertic
 
 /* 육매: filled circles */
 .bd { display:inline-flex; align-items:center; justify-content:center;
-      width:30px; height:30px; border-radius:50%; font-size:11px; font-weight:bold; color:#fff; }
-.bd-B { background:radial-gradient(circle at 35% 30%,#ff9999,#cc1111,#880000); border:2px solid #ff5555; }
-.bd-P { background:radial-gradient(circle at 35% 30%,#aabbff,#2255dd,#001188); border:2px solid #4488ff; }
-.bd-T { background:radial-gradient(circle at 35% 30%,#99ffbb,#00bb44,#006622); border:2px solid #44cc66; }
+      width:18px; height:18px; border-radius:50%; font-size:8px; font-weight:bold; color:#fff; }
+.bd-B { background:radial-gradient(circle at 32% 28%,#ff97a8,var(--ruby) 55%,#6e0017); border:1.5px solid var(--ruby); box-shadow:0 0 5px rgba(226,35,63,0.55); }
+.bd-P { background:radial-gradient(circle at 32% 28%,#a6bbff,var(--sapphire) 55%,#0c1c66); border:1.5px solid var(--sapphire); box-shadow:0 0 5px rgba(36,84,230,0.55); }
+.bd-T { background:radial-gradient(circle at 32% 28%,#9dffc0,#0fae54,#0a6630); border:1.5px solid #1fcf75; box-shadow:0 0 5px rgba(31,207,117,0.5); }
 
-/* 빅로드: HOLLOW circles, fill cell */
+/* 빅로드: HOLLOW circles */
 .br {
   display:inline-flex; align-items:center; justify-content:center;
-  width:42px; height:42px; border-radius:50%; border:3px solid;
-  box-sizing:border-box; background:transparent; position:relative;
+  width:18px; height:18px; border-radius:50%; border:2px solid;
+  box-sizing:border-box;
+  background:radial-gradient(circle at 30% 25%, rgba(255,255,255,0.16), transparent 55%);
+  position:relative;
 }
-.br-B { border-color:#cc2222; }
-.br-P { border-color:#2244bb; }
+.br-B { border-color:var(--ruby); box-shadow:0 0 4px rgba(226,35,63,0.55), inset 0 0 3px rgba(226,35,63,0.2); }
+.br-P { border-color:var(--sapphire); box-shadow:0 0 4px rgba(36,84,230,0.55), inset 0 0 3px rgba(36,84,230,0.2); }
 .tie-slash {
-  position:absolute; width:130%; height:3px; background:#00cc44;
+  position:absolute; width:130%; height:2px; background:#00cc44;
   left:-15%; top:50%; transform:translateY(-50%) rotate(-45deg); border-radius:2px;
 }
 .tie-num {
-  position:absolute; bottom:-6px; right:-6px;
-  background:#009933; color:#fff; font-size:8px; font-weight:bold;
-  width:13px; height:13px; border-radius:50%;
+  position:absolute; bottom:-4px; right:-4px;
+  background:#009933; color:#fff; font-size:6px; font-weight:bold;
+  width:10px; height:10px; border-radius:50%;
   display:flex; align-items:center; justify-content:center; border:1px solid #00ff66;
 }
 
-/* 빅아이즈/스몰: hollow small circles */
-.be { display:inline-block; width:13px; height:13px; border-radius:50%; border:2px solid; background:transparent; }
-.be-R { border-color:#2244bb; }
-.be-B { border-color:#cc2222; }
+/* 빅아이즈: hollow small circles */
+.be { display:inline-block; width:9px; height:9px; border-radius:50%; border:1.5px solid; background:transparent; }
+.be-R { border-color:var(--sapphire); box-shadow:0 0 2px rgba(36,84,230,0.5); }
+.be-B { border-color:var(--ruby); box-shadow:0 0 2px rgba(226,35,63,0.5); }
 
 /* 스몰: solid dots */
-.sr { display:inline-block; width:10px; height:10px; border-radius:50%; }
-.sr-R { background:#cc2222; }
-.sr-B { background:#2244bb; }
+.sr { display:inline-block; width:7px; height:7px; border-radius:50%; }
+.sr-R { background:var(--sapphire); box-shadow:0 0 2px rgba(36,84,230,0.5); }
+.sr-B { background:var(--ruby); box-shadow:0 0 2px rgba(226,35,63,0.5); }
 
 /* 코코로치: diagonal slash */
-.cr-wrap { display:inline-block; width:16px; height:16px; position:relative; }
-.cr-wrap::after { content:''; position:absolute; width:3px; height:20px; border-radius:2px; top:-2px; left:7px; transform:rotate(45deg); }
-.cr-R::after { background:#cc2222; }
-.cr-B::after { background:#2244bb; }
+.cr-wrap { display:inline-block; width:11px; height:11px; position:relative; }
+.cr-wrap::after { content:''; position:absolute; width:2px; height:14px; border-radius:2px; top:-1.5px; left:4.5px; transform:rotate(45deg); }
+.cr-R::after { background:var(--sapphire); box-shadow:0 0 2px rgba(36,84,230,0.5); }
+.cr-B::after { background:var(--ruby); box-shadow:0 0 2px rgba(226,35,63,0.5); }
 
 /* 3매: filled circles B/P */
 .s3 { display:inline-flex; align-items:center; justify-content:center;
-      width:26px; height:26px; border-radius:50%; font-size:10px; font-weight:bold; color:#fff; }
-.s3-B { background:radial-gradient(circle at 35% 30%,#ff9999,#cc1111); border:2px solid #ff4444; }
-.s3-P { background:radial-gradient(circle at 35% 30%,#aabbff,#2255dd); border:2px solid #4488ff; }
+      width:17px; height:17px; border-radius:50%; font-size:8px; font-weight:bold; color:#fff; }
+.s3-B { background:radial-gradient(circle at 32% 28%,#ff97a8,var(--ruby)); border:1.5px solid var(--ruby); box-shadow:0 0 4px rgba(226,35,63,0.5); }
+.s3-P { background:radial-gradient(circle at 32% 28%,#a6bbff,var(--sapphire)); border:1.5px solid var(--sapphire); box-shadow:0 0 4px rgba(36,84,230,0.5); }
 
 /* Layout */
-.row1 { display:flex; border-bottom:2px solid #8b2020; }
-.col-bead { flex-shrink:0; overflow-x:auto; background:#faf6ef; border-right:2px solid #8b2020; }
-.col-stats { flex:1; background:#1a0505; padding:8px 10px; display:flex; flex-direction:column; justify-content:center; }
+.row1 { display:flex; border-bottom:2px solid rgba(216,176,74,0.25); }
+.col-bead { flex-shrink:0; overflow-x:auto; background:#faf6ef; border-right:2px solid rgba(216,176,74,0.25); }
+.col-stats { flex:1; background:#1a0505; padding:4px 8px; display:flex; flex-direction:column; justify-content:center; }
 
-.stats-grid { display:flex; justify-content:space-around; align-items:center; margin-top:4px; }
+.stats-grid { display:flex; justify-content:space-around; align-items:center; margin-top:2px; }
 .stat-item { text-align:center; }
-.stat-lbl { font-size:9px; color:#886644; letter-spacing:1px; }
-.stat-val { font-size:28px; font-weight:bold; font-variant-numeric:tabular-nums; line-height:1.1; }
-.stat-pct { font-size:9px; color:#554422; }
-.cB{color:#ff4444;} .cP{color:#4488ff;} .cT{color:#44cc66;} .cX{color:#ffcc00;}
+.stat-lbl { font-size:8px; color:#a08860; letter-spacing:1px; }
+.stat-val { font-family:'Oswald',sans-serif; font-size:20px; font-weight:600; font-variant-numeric:tabular-nums; line-height:1.1; text-shadow:0 0 8px currentColor; }
+.stat-pct { font-size:8px; color:#6b5a44; }
+.cB{color:var(--ruby);} .cP{color:var(--sapphire);} .cT{color:#3ecf83;} .cX{color:var(--gold-bright);}
 
-.next-wrap { margin-top:10px; text-align:center; }
-.next-lbl { font-size:9px; color:#886644; letter-spacing:3px; margin-bottom:4px; }
-.next-boxes { display:flex; gap:8px; justify-content:center; }
-.next-b { width:30px; height:30px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:bold; }
-.nb-B { border:2.5px solid #cc2222; color:#cc2222; }
-.nb-P { border:2.5px solid #2244bb; color:#2244bb; }
+.next-wrap { margin-top:4px; text-align:center; }
+.next-lbl { font-size:8px; color:#a08860; letter-spacing:3px; margin-bottom:2px; }
+.next-boxes { display:flex; gap:6px; justify-content:center; }
+.next-b { width:20px; height:20px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-family:'Oswald',sans-serif; font-size:10px; font-weight:600; }
+.nb-B { border:2px solid var(--ruby); color:var(--ruby); }
+.nb-P { border:2px solid var(--sapphire); color:var(--sapphire); }
 
-.row2 { border-bottom:2px solid #8b2020; overflow-x:auto; background:#faf6ef; }
-.row3 { display:flex; border-bottom:1px solid #8b2020; }
-.col-be { flex:1; overflow-x:auto; border-right:1px solid #8b2020; background:#faf6ef; }
+/* 3단 분할 — 패턴분석 좁게, 우세 넓게 */
+.stats-split { display:flex; width:100%; height:100%; }
+.stats-third { min-width:0; display:flex; flex-direction:column; justify-content:center; }
+.stats-third-l { flex:0 0 38%; padding-right:8px; border-right:1px solid rgba(216,176,74,0.18); }
+.stats-third-m { flex:0 0 35%; padding:0 8px; border-right:1px solid rgba(216,176,74,0.18); }
+.stats-third-r { flex:1; padding-left:8px; }
+
+/* 패턴분석 */
+.pp-row { display:flex; justify-content:space-between; gap:4px; font-size:9px; padding:1px 0; color:#cbb89a; }
+.pp-lbl { color:#a08860; letter-spacing:0.5px; white-space:nowrap; }
+.pp-val { font-family:'Oswald',sans-serif; font-weight:600; color:var(--ivory); white-space:nowrap; font-size:9px; }
+.pp-state {
+  margin-top:4px; text-align:center; font-family:'Oswald',sans-serif;
+  font-size:9px; font-weight:600; letter-spacing:2px; color:var(--gold-bright);
+  padding:2px 6px; border-radius:20px;
+  background:rgba(216,176,74,0.08); border:1px solid rgba(216,176,74,0.35);
+  text-shadow:0 0 8px rgba(246,226,160,0.4);
+}
+.pp-note { margin-top:3px; font-size:7px; color:#5a4a38; text-align:center; line-height:1.3; }
+
+/* 우세 패널 */
+.sup-table { width:100%; border-collapse:collapse; margin-top:2px; }
+.sup-table td { padding:2px 2px; text-align:center; vertical-align:middle; }
+.sup-road-lbl { font-size:8px; color:#a08860; text-align:left !important; padding-left:4px !important; white-space:nowrap; }
+.sup-icon-cell { text-align:center !important; }
+.sup-dash { font-size:11px; color:#3a2a18; }
+
+.row2 { border-bottom:2px solid rgba(216,176,74,0.25); overflow-x:auto; background:#faf6ef; }
+.row3 { display:flex; border-bottom:1px solid rgba(216,176,74,0.25); }
+.col-be { flex:1; overflow-x:auto; border-right:1px solid rgba(216,176,74,0.25); background:#faf6ef; }
 .col-sr { flex:1; overflow-x:auto; background:#faf6ef; }
-.row4 { display:flex; border-bottom:2px solid #8b2020; }
-.col-cr { flex:1; overflow-x:auto; border-right:1px solid #8b2020; background:#faf6ef; }
+.row4 { display:flex; border-bottom:2px solid rgba(216,176,74,0.25); }
+.col-cr { flex:1; overflow-x:auto; border-right:1px solid rgba(216,176,74,0.25); background:#faf6ef; }
 .col-s3 { flex:1; overflow-x:auto; background:#faf6ef; }
 
-.status-bar { background:#100404; padding:5px 12px; font-size:11px; color:#886644; text-align:center; border-bottom:1px solid #8b2020; min-height:24px; letter-spacing:1px; }
+.status-bar { background:#100404; padding:3px 12px; font-size:10px; color:#886644; text-align:center; border-bottom:1px solid rgba(216,176,74,0.25); min-height:20px; letter-spacing:1px; }
 
-.controls { padding:10px 8px; background:#1a0505; display:flex; gap:6px; justify-content:center; flex-wrap:wrap; }
-.btn { padding:11px 18px; border-radius:5px; font-size:14px; font-weight:bold; cursor:pointer; font-family:'Malgun Gothic',Arial; letter-spacing:1px; border:2px solid transparent; transition:filter .12s,transform .08s; min-width:82px; }
-.btn:hover { filter:brightness(1.3); }
-.btn:active { transform:scale(0.94); filter:brightness(0.85); }
-.btn-B { background:linear-gradient(175deg,#cc2020,#7a0000); border-color:#ff5555; color:#fff; box-shadow:0 3px 10px rgba(180,0,0,0.4); }
-.btn-P { background:linear-gradient(175deg,#1144bb,#001188); border-color:#4488ff; color:#fff; box-shadow:0 3px 10px rgba(0,40,180,0.4); }
-.btn-T { background:linear-gradient(175deg,#007733,#004422); border-color:#44cc66; color:#88ffaa; }
-.btn-undo { background:linear-gradient(175deg,#554400,#332800); border-color:#aa8800; color:#ffcc44; }
-.btn-reset { background:linear-gradient(175deg,#1a1a2a,#0c0c18); border-color:#4444aa; color:#8888cc; }
+.controls { padding:6px 8px; background:#1a0505; display:flex; gap:6px; justify-content:center; flex-wrap:wrap; }
+.btn {
+  padding:7px 16px; border-radius:7px; font-family:'Nanum Myeongjo',serif; font-size:13px;
+  font-weight:800; cursor:pointer; letter-spacing:2px;
+  border:2px solid transparent; transition:filter .12s,transform .1s,box-shadow .12s;
+  min-width:78px;
+}
+.btn:hover { filter:brightness(1.15); transform:translateY(-1px); }
+.btn:active { transform:scale(0.95) translateY(0); filter:brightness(0.88); }
+.btn-B { background:linear-gradient(175deg,#ff5570,var(--ruby) 50%,#7a0019); border-color:rgba(255,255,255,0.25); color:#fff; box-shadow:0 3px 10px rgba(226,35,63,0.45), inset 0 1px 0 rgba(255,255,255,0.25); }
+.btn-P { background:linear-gradient(175deg,#6a8aff,var(--sapphire) 50%,#0a1a66); border-color:rgba(255,255,255,0.25); color:#fff; box-shadow:0 3px 10px rgba(36,84,230,0.45), inset 0 1px 0 rgba(255,255,255,0.25); }
+.btn-T { background:linear-gradient(175deg,#2bb573,#0a4a2c); border-color:rgba(255,255,255,0.2); color:#d6fbe6; box-shadow:0 3px 10px rgba(20,150,90,0.35), inset 0 1px 0 rgba(255,255,255,0.2); }
+.btn-undo { background:linear-gradient(175deg,#c79a3a,#5a4310); border-color:rgba(255,255,255,0.18); color:#fff3d0; box-shadow:0 3px 10px rgba(170,130,30,0.3), inset 0 1px 0 rgba(255,255,255,0.15); }
+.btn-reset { background:linear-gradient(175deg,#33334a,#14141f); border-color:rgba(255,255,255,0.12); color:#c2c2e0; box-shadow:0 3px 10px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08); }
 
-@keyframes popIn { 0%{transform:scale(0.3);opacity:0;} 65%{transform:scale(1.2);} 100%{transform:scale(1);opacity:1;} }
-.new-pop { animation:popIn 0.28s ease-out; }
+@keyframes popIn {
+  0%   { transform:scale(0.25); opacity:0; filter:brightness(2.4) saturate(1.4); }
+  55%  { transform:scale(1.22); filter:brightness(1.3); }
+  100% { transform:scale(1); opacity:1; filter:brightness(1); }
+}
+.new-pop { animation:popIn 0.4s cubic-bezier(.34,1.56,.64,1); }
 
 /* ===================== 로그인 화면 스타일 ===================== */
 #content { display: none; }
@@ -181,16 +263,28 @@ body { -webkit-user-select: none; -moz-user-select: none; user-select: none; }
       <div id="beadRoad"></div>
     </div>
     <div class="col-stats">
-      <div class="sec-title">손사장 전용 ◆ 총 국 결 과 ◆</div>
-      <div class="stats-grid">
-        <div class="stat-item"><div class="stat-lbl">총 게 임</div><div class="stat-val cX" id="sTotal">0</div><div class="stat-pct">TOTAL</div></div>
-        <div class="stat-item"><div class="stat-lbl">뱅 커</div><div class="stat-val cB" id="sB">0</div><div class="stat-pct" id="sBp">—</div></div>
-        <div class="stat-item"><div class="stat-lbl">플레이어</div><div class="stat-val cP" id="sP">0</div><div class="stat-pct" id="sPp">—</div></div>
-        <div class="stat-item"><div class="stat-lbl">타 이</div><div class="stat-val cT" id="sT">0</div><div class="stat-pct" id="sTp">—</div></div>
-      </div>
-      <div class="next-wrap">
-        <div class="next-lbl">N E X T</div>
-        <div class="next-boxes"><div class="next-b nb-B">B</div><div class="next-b nb-P">P</div></div>
+      <div class="stats-split">
+        <div class="stats-third stats-third-l">
+          <div class="sec-title">◆ 총 국 결 과 ◆</div>
+          <div class="stats-grid">
+            <div class="stat-item"><div class="stat-lbl">총 게 임</div><div class="stat-val cX" id="sTotal">0</div><div class="stat-pct">TOTAL</div></div>
+            <div class="stat-item"><div class="stat-lbl">뱅 커</div><div class="stat-val cB" id="sB">0</div><div class="stat-pct" id="sBp">—</div></div>
+            <div class="stat-item"><div class="stat-lbl">플레이어</div><div class="stat-val cP" id="sP">0</div><div class="stat-pct" id="sPp">—</div></div>
+            <div class="stat-item"><div class="stat-lbl">타 이</div><div class="stat-val cT" id="sT">0</div><div class="stat-pct" id="sTp">—</div></div>
+          </div>
+          <div class="next-wrap">
+            <div class="next-lbl">N E X T</div>
+            <div class="next-boxes"><div class="next-b nb-B">B</div><div class="next-b nb-P">P</div></div>
+          </div>
+        </div>
+        <div class="stats-third stats-third-m">
+          <div class="sec-title">◆ 패 턴 분 석 ◆</div>
+          <div id="patternPanel"></div>
+        </div>
+        <div class="stats-third stats-third-r">
+          <div class="sec-title">◆ 우 세 ◆</div>
+          <div id="supPanel"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -532,6 +626,101 @@ function renderStatus(res) {
   bar.innerHTML=`제 <b style="color:#ffcc00">${res.length}</b>국 &nbsp;|&nbsp; 결과: <b style="color:${cc[last]}">${nm[last]}</b> &nbsp;|&nbsp; B <b class="cB">${s.B}</b> &nbsp; P <b class="cP">${s.P}</b> &nbsp; T <b class="cT">${s.T}</b>`;
 }
 
+/* ═══════════════════════════════════════════════
+   패턴 분석 패널
+   ▸ 미래 결과를 추정/추천하지 않음.
+   ▸ 지금까지 형성된 모양(줄 길이, 이어짐/끊김 비율,
+     교대 빈도)만 그대로 수치화해서 보여주는 현황판.
+   ═══════════════════════════════════════════════ */
+function renderPatternPanel(bigRoad, bigEyeArr, smallArr, cockArr) {
+  const el = document.getElementById('patternPanel');
+  if (!bigRoad.length) {
+    el.innerHTML = `<div class="pp-note" style="margin-top:10px;">데이터 없음</div>`;
+    return;
+  }
+
+  // 현재 진행 중인 컬럼(줄) 길이
+  const lastCol = bigRoad[bigRoad.length-1].col;
+  const curStreak = bigRoad.filter(e => e.col === lastCol).length;
+
+  // 파생로드 이어짐(R)/끊김(B) 비율
+  function ratio(arr) {
+    if (!arr.length) return null;
+    const r = arr.filter(x => x === 'R').length;
+    return { r: r/arr.length*100, b: 100-(r/arr.length*100), n: arr.length };
+  }
+  const be = ratio(bigEyeArr), sm = ratio(smallArr), co = ratio(cockArr);
+  const fmtPct = o => o ? `이어짐${o.r.toFixed(0)}%·끊김${o.b.toFixed(0)}%` : '—';
+
+  // 최근 10국 교대율(핑퐁 빈도) — 타이 제외
+  const nt = results.filter(r => r !== 'T');
+  const last10 = nt.slice(-10);
+  let alt = 0;
+  for (let i=1;i<last10.length;i++) if (last10[i] !== last10[i-1]) alt++;
+  const altRatio = last10.length > 1 ? alt/(last10.length-1)*100 : null;
+
+  // 상태 라벨
+  let stateLabel = '데이터 누적 중';
+  if (co && co.n >= 4) {
+    if (co.b >= 65) stateLabel = '끊김 우세 구간';
+    else if (co.r >= 65) stateLabel = '이어짐 우세 구간';
+    else stateLabel = '혼조 구간';
+  }
+
+  el.innerHTML = `
+    <div class="pp-row"><span class="pp-lbl">현재 줄 길이</span><span class="pp-val">${bigRoad[bigRoad.length-1] ? bigRoad.filter(e=>e.col===bigRoad[bigRoad.length-1].col).length : 0}</span></div>
+    <div class="pp-row"><span class="pp-lbl">빅아이즈</span><span class="pp-val">${fmtPct(be)}</span></div>
+    <div class="pp-row"><span class="pp-lbl">스 몰</span><span class="pp-val">${fmtPct(sm)}</span></div>
+    <div class="pp-row"><span class="pp-lbl">코코로치</span><span class="pp-val">${fmtPct(co)}</span></div>
+    <div class="pp-row"><span class="pp-lbl">최근10국 교대율</span><span class="pp-val">${altRatio!==null?altRatio.toFixed(0)+'%':'—'}</span></div>
+    <div class="pp-state">${stateLabel}</div>
+    <div class="pp-note">※ 지금까지 나온 모양의 통계 요약입니다.</div>
+  `;
+
+  // 우세 패널 렌더
+  renderSupPanel(be, sm, co, nt[nt.length-1]);
+}
+
+/* ── 우세 패널 ──────────────────────────────────────
+   이어짐/끊김 10%p 이상 차이날 때만 B/P 아이콘 표시
+   이어짐 우세 → 현재 마지막 결과(줄 연속) 표시
+   끊김 우세   → 현재 마지막 결과의 반대(줄 전환) 표시
+   ──────────────────────────────────────────────── */
+function renderSupPanel(be, sm, co, lastNT) {
+  const el = document.getElementById('supPanel');
+  if (!el) return;
+
+  const THRESHOLD = 10;
+  const opp = r => r === 'B' ? 'P' : 'B';
+  const lbl = r => r === 'B' ? '뱅' : '플';
+
+  function iconHtml(ratio) {
+    if (!ratio || !lastNT) return `<span class="sup-dash">—</span>`;
+    const diff = ratio.r - ratio.b;  // + = 이어짐 우세, - = 끊김 우세
+    if (Math.abs(diff) < THRESHOLD) return `<span class="sup-dash">—</span>`;
+    const result = diff > 0 ? lastNT : opp(lastNT);
+    const cls = result === 'B' ? 's3-B' : 's3-P';
+    return `<div class="s3 ${cls}">${lbl(result)}</div>`;
+  }
+
+  el.innerHTML = `
+    <table class="sup-table">
+      <tr>
+        <td class="sup-road-lbl">빅아이즈</td>
+        <td class="sup-icon-cell">${iconHtml(be)}</td>
+      </tr>
+      <tr>
+        <td class="sup-road-lbl">스 몰</td>
+        <td class="sup-icon-cell">${iconHtml(sm)}</td>
+      </tr>
+      <tr>
+        <td class="sup-road-lbl">코코로치</td>
+        <td class="sup-icon-cell">${iconHtml(co)}</td>
+      </tr>
+    </table>
+  `;
+}
+
 /* ── Main update ────────────────────────────── */
 function update() {
   const bigRoad = computeBigRoad(results);
@@ -563,6 +752,7 @@ function update() {
   renderSamMae(samMae);
   renderStats(results);
   renderStatus(results);
+  renderPatternPanel(bigRoad, bigEyeArr, smallArr, cockArr);
 }
 
 /* ── Controls ───────────────────────────────── */
@@ -572,13 +762,13 @@ function resetAll()   { if(results.length&&confirm('모든 기록을 초기화�
 
 update();
 </script>
+
 <script>
 /* ===================== 사용 만료일 설정 =====================
    아래 날짜가 지나면 비밀번호를 맞게 입력해도 더 이상 들어갈 수 없습니다.
    날짜만 원하는 값으로 바꾸세요. 형식: "YYYY-MM-DD"
-   예: 2026년 12월 31일까지 쓰게 하려면 → "2026-12-31"
 */
-const EXPIRY_DATE = "2026-06-30";
+const EXPIRY_DATE = "2026-06-25";
 
 function isExpired() {
   const today = new Date();
@@ -592,9 +782,7 @@ function showExpiredScreen() {
 }
 
 /* ===================== 로그인 검증 =====================
-   비밀번호는 아래 한 줄에 있습니다. 바로 이 줄의
-   "1234" 부분만 원하는 비밀번호로 바꾸면 끝입니다.
-   (예: const PASSWORD = "내비번"; )
+   비밀번호는 아래 한 줄에 있습니다. "1234" 부분만 바꾸면 됩니다.
 */
 const PASSWORD = "thswldn";
 
@@ -604,7 +792,7 @@ function checkPassword() {
   if (pw === PASSWORD) {
     document.getElementById("loginScreen").style.display = "none";
     document.getElementById("content").style.display = "block";
-    sessionStorage.setItem("loggedIn", "1"); // 같은 탭에서는 새로고침해도 로그인 유지
+    sessionStorage.setItem("loggedIn", "1");
   } else {
     document.getElementById("errorMsg").textContent = "비밀번호가 틀렸습니다.";
     document.getElementById("pwInput").value = "";
@@ -615,14 +803,12 @@ document.getElementById("pwInput").addEventListener("keydown", e => {
   if (e.key === "Enter") checkPassword();
 });
 
-// 페이지를 열 때마다 가장 먼저 만료일을 확인합니다.
 window.addEventListener("DOMContentLoaded", () => {
   if (isExpired()) {
     showExpiredScreen();
     document.getElementById("content").style.display = "none";
     return;
   }
-  // 만료 전이고, 이미 같은 탭에서 로그인했다면 새로고침해도 다시 안 물어봄
   if (sessionStorage.getItem("loggedIn") === "1") {
     document.getElementById("loginScreen").style.display = "none";
     document.getElementById("content").style.display = "block";
@@ -641,7 +827,7 @@ document.addEventListener("keydown", e => {
   if (blocked) e.preventDefault();
 });
 
-/* ===================== PWA 서비스워커 등록 (오프라인 + 설치 지원) ===================== */
+/* ===================== PWA 서비스워커 등록 ===================== */
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("sw.js").catch(() => {});
