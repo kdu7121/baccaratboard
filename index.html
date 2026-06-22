@@ -726,8 +726,8 @@ function update() {
   const bigRoad = computeBigRoad(results);
   // 빅아이즈로드만 색 반전 (실측 결과 정반대로 나와서 호출부에서만 뒤집음 — 다른 로드는 손대지 않음)
   const bigEyeArr  = computeDerived(bigRoad, 1).map(v => v === 'R' ? 'B' : 'R');
-  const smallArr   = computeDerived(bigRoad, 2);
-  const cockArr    = computeDerived(bigRoad, 3);
+  const smallArr   = computeDerived(bigRoad, 2).map(v => v === 'R' ? 'B' : 'R');
+  const cockArr    = computeDerived(bigRoad, 3).map(v => v === 'R' ? 'B' : 'R');
   const samMae  = computeSamMae(results);
 
   const bigEyeDisp = buildDerivedDisplay(bigEyeArr, DER_ROWS);
